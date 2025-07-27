@@ -3,25 +3,22 @@ from sklearn.ensemble import IsolationForest
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-dataset = pd.read_csv('creditcard.csv')
+df = pd.read_csv('data/creditcard.csv')
+X = df.drop(columns=['Class'])
 
-X = dataset.drop(columns=['Class'])
 model = IsolationForest(contamination=0.0017, random_state=42)
 model.fit(X)
 
-dataset["pred"] = model.predict(X)
+df["prediction"] = model.predict(X)
+df["fraud_detected"] = df["prediction"] == -1
+df["fraud_actual"] = df["Class"] == 1
 
-dataset["fraude_detectee"] = dataset["pred"] == -1
-dataset["fraude_reelle"] = dataset["Class"] == 1
+print("Actual frauds:", df["Class"].sum())
+print("Frauds detected by Isolation Forest:", df["fraud_detected"].sum())
 
-
-print("Fraudes réelles :", dataset['Class'].sum())
-print("Fraudes détectées par Isolation Forest :", dataset["fraude_detectee"].sum())
-
-confusion = pd.crosstab(dataset["fraude_reelle"], dataset["fraude_detectee"], rownames=["Réel"], colnames=["Détecté"])
+confusion = pd.crosstab(df["fraud_actual"], df["fraud_detected"], rownames=["Actual"], colnames=["Detected"])
 print(confusion)
 
-sns.scatterplot(data=dataset.sample(1000), x="V2", y="V3", hue="fraude_detectee", style="fraude_reelle")
-plt.title("Détection de fraudes avec Isolation Forest")
+sns.scatterplot(data=df.sample(1000), x="V2", y="V3", hue="fraud_detected", style="fraud_actual")
+plt.title("Fraud Detection with Isolation Forest")
 plt.show()
-
